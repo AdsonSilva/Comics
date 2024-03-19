@@ -15,7 +15,7 @@ class ComicsViewModel(application: Application, private val repository: Reposito
     private val _comics = MutableLiveData<List<ItemVO>>()
     val comics: LiveData<List<ItemVO>> = _comics
 
-    private val _isViewLoading = MutableLiveData<Boolean>()
+    private val _isViewLoading = MutableLiveData<Boolean>().apply { value = false }
     val isViewLoading: LiveData<Boolean> = _isViewLoading
 
     private val _error = MutableLiveData<Exception>()
@@ -27,9 +27,11 @@ class ComicsViewModel(application: Application, private val repository: Reposito
         }) {
             is Result.Success -> result.data.body()?.apply {
                 setupList(this)
+                _isViewLoading.postValue(false)
             }
 
             is Result.Failure -> {
+                _isViewLoading.postValue(false)
                 _error.postValue(result.error)
             }
         }
@@ -45,6 +47,7 @@ class ComicsViewModel(application: Application, private val repository: Reposito
             }
 
         _comics.postValue(comicsList)
+        _isViewLoading.postValue(false)
     }
 
     fun setViewLoading(isViewLoading: Boolean) {

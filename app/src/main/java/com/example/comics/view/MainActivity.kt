@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
-class MainActivity : AppCompatActivity(), IView {
+class MainActivity : AppCompatActivity() {
 
     private val comicsViewModel: ComicsViewModel by viewModel()
 
@@ -50,14 +50,14 @@ class MainActivity : AppCompatActivity(), IView {
         }
     }
 
-    override fun refresh() {
+    private fun refresh() {
         comicsViewModel.setViewLoading(true)
         lifecycle.coroutineScope.launch {
             comicsViewModel.loadComics()
         }
     }
 
-    override fun viewList(list: List<ItemVO>) {
+    private fun viewList(list: List<ItemVO>) {
         with(binding) {
             this?.errorTV?.visibility = View.GONE
             this?.listItem?.visibility = View.VISIBLE
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(), IView {
         }
     }
 
-    override fun error() {
+    private fun error() {
         with(binding) {
             this?.listItem?.visibility = View.GONE
             this?.errorTV?.visibility = View.VISIBLE

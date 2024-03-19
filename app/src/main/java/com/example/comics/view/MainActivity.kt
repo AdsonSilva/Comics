@@ -6,13 +6,14 @@ import android.view.View
 import androidx.lifecycle.coroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.comics.databinding.ActivityMainBinding
-import com.example.comics.interactor.Interactor
-import com.example.comics.presenter.Presenter
+import com.example.comics.viewmodel.ComicsViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class MainActivity : AppCompatActivity(), IView {
 
-    private val interactor: Interactor = Interactor(Presenter(this))
+    private val comicsViewModel: ComicsViewModel by viewModel()
 
     private var binding: ActivityMainBinding? = null
 
@@ -21,23 +22,38 @@ class MainActivity : AppCompatActivity(), IView {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding?.root)
 
-        refrash()
+        setupObserver()
+        refresh()
 
         swipeList()
     }
 
-    private fun swipeList() = with(binding?.swipeRefresh) {
-        this?.setOnRefreshListener {
-            refrash()
+    private fun setupObserver() {
+        comicsViewModel.comics.observe(this) {
+            viewList(it)
+        }
+
+        comicsViewModel.isViewLoading.observe(this) {isLoading ->
+            with(binding) {
+                this?.swipeRefresh?.isRefreshing = isLoading
+            }
+        }
+
+        comicsViewModel.error.observe(this) {
+            this.error()
         }
     }
 
-    override fun refrash() {
-        with(binding) {
-            this?.swipeRefresh?.isRefreshing = true
-            lifecycle.coroutineScope.launch {
-                interactor.getComics()
-            }
+    private fun swipeList() = with(binding?.swipeRefresh) {
+        this?.setOnRefreshListener {
+            refresh()
+        }
+    }
+
+    override fun refresh() {
+        comicsViewModel.setViewLoading(true)
+        lifecycle.coroutineScope.launch {
+            comicsViewModel.loadComics()
         }
     }
 
@@ -47,7 +63,7 @@ class MainActivity : AppCompatActivity(), IView {
             this?.listItem?.visibility = View.VISIBLE
             this?.listItem?.adapter = Adapter(list)
             this?.listItem?.layoutManager = LinearLayoutManager(this@MainActivity)
-            this?.swipeRefresh?.isRefreshing = false
+            comicsViewModel.setViewLoading(false)
         }
     }
 
@@ -55,8 +71,10 @@ class MainActivity : AppCompatActivity(), IView {
         with(binding) {
             this?.listItem?.visibility = View.GONE
             this?.errorTV?.visibility = View.VISIBLE
-            this?.swipeRefresh?.isRefreshing = false
+            comicsViewModel.setViewLoading(false)
         }
     }
+
+
 
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Comics</string>
+    <string name="title_activity_comics">ComicsActivity</string>
 </resources>
